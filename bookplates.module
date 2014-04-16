@@ -1,0 +1,110 @@
+<?php
+/**
+ * @file
+ * Custom functionality for a database of bookplates.
+ */
+
+/**
+	* Implements hook_help().
+	*/
+	
+function bookplates_help ($path, $arg) {
+  switch ($path) {
+   case 'admin/help#bookplates':{
+     $ret_val = '<h3>' . t('About') . '</h3>';
+	 $ret_val .= '<p>' . t('The Bookplates module makes it easy to create and store digital bookplates.') . '</p>';
+	 return $ret_val;
+	 break;
+  }
+ }  
+}
+
+/** 
+  * Implements hook_permission().
+  */
+ 
+ function bookplates_permission() {
+   return array(
+    'administer bookplates' => array (
+	  'title' =>('Administer Bookplates'),
+	  'description' => t('Perform administrative tasks on Bookplates functionality'),
+	  ),
+   );
+}
+
+/** 
+ * Implements hook_menu().
+ */
+ 
+ function bookplates_menu() {
+   $items = array();
+   
+   // Admin configuration group.
+   $items['admin/config/bookplates'] = array(
+     'title' => 'Bookplates',
+	 'description' => 'Administer Bookplates',
+	 'access arguments' => array('administer bookplates'),
+	);
+  // Admin configuration - Settings.
+   $items['admin/config/bookplates/manage'] = array (
+    'title' => 'Bookplate settings',
+    'description' => 'Manage bookplate settings and configuration',
+    'access arguments' => array('administer bookplates'),
+	  'page callback' => 'drupal_get_form',
+	  'page arguments' => array('bookplates_admin_settings_form'),
+   );
+  
+   return $items;
+ }
+
+ /**
+  * Implements hook_form().
+  */
+
+ function bookplates_admin_settings_form($node, &$form_state) {
+  $form = array();
+  
+  $form['overview'] = array(
+    '#markup' => t('Manage Bookplates Module Settings Here.'),
+    '#prefix' => '<p>',
+    '#suffix' => '</p>',
+    );
+
+$form['default_center']['bookplates_library_name'] = array(
+    '#title' => t('Library Name'),
+    '#description' => t('Library Name as you want it displayed in the system'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('bookplates_library_name'),
+    '#required' => TRUE,
+    );
+
+  $form['default_center']['bookplates_library_catalog_link'] = array(
+    '#title' => t('Catalog Link'),
+    '#description' => t('Base URL of your library catalog'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('bookplates_library_catalog_link'),
+    '#required' => TRUE,
+    );
+
+
+  return system_settings_form($form);
+ }
+
+ /**
+  * Validates Book Plate admin settings.
+  */
+
+ function bookplates_admin_settings_form_validate($form, &$form_state) {
+
+  //regular expression for validating URLs to library catalogs
+  $url_regex = '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+
+  $cat = $form_state['values']['bookplates_library_catalog_link'];
+
+  // Validate latitude and longitude format.
+  if (!preg_match($url_regex, $cat)) {
+    form_set_error('bookplates_library_catalog_link', t('Link to library catalog must be a valid URL'));
+
+  }
+ }
+
