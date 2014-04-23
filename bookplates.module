@@ -108,3 +108,76 @@ $form['default_center']['bookplates_library_name'] = array(
   }
  }
 
+/**
+ * Implements newitems_block_info().
+ */
+function newitems_block_info() {
+  $blocks=array();
+
+  $blocks['newitems'] = array(
+    'info' => t('Newly Added Items'),
+    );
+
+    return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function newitems_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'newitems':{
+      $block['subject'] = t('Newly Added Items');
+      $block['content'] = bookplates_block_contents($delta);
+      break;
+    }
+  }
+
+  return $block;
+}
+
+/**
+ * New Items Block Contents.
+ * @param string $delta
+ *  The block ID.
+ * 
+ * @return string
+ *  HTML output.
+ */ 
+
+function newitems_block_contents($delta) {
+  $output = '';
+  switch ($delta) {
+   case 'newitems':{
+    $query = new EntityFieldQuery();
+
+    //Only show nodes
+    $query->entityCondition('entity_type', 'node');
+
+    //Only show new items
+    $query->entityCondition('bundle', 'feed_item');
+
+    //Execute Query
+    $result = $query->execute();
+
+    // No Results.
+    if (!isset($result['node'])) {
+      return '';
+    }
+    
+    $nodes = node_load_multiple(array_keys($result['node']));
+
+    $facility_name = check_plain($node->title);
+
+    //Add a link to the node.
+    $description .= '' . l(t('More info'), 'node/' . $node->nid);
+    
+    // HTML container
+    $output = 'div id="newitems_block_contents" style="width:500px;height:400px;"></div>';
+    break;
+   } 
+  }
+  return $output;
+}

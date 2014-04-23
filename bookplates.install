@@ -1,12 +1,12 @@
 <?php
 /**
-* @file
-* Bookplates installation
-*/
+ * @file
+ * Bookplates installation
+ */
 
 /**
-* Implements hook_install().
-*/
+ *Implements hook_install().
+ */
 
 function bookplates_install() {
   $t = get_t();
@@ -19,32 +19,42 @@ function bookplates_install() {
   //  Content type definition.
   $content_type = array(
     'type' => 'bookplate',
-    'name' => $t('Digital Bookplate'),
-    'description' => $t('A Digital Bookplate Page'),
-    'title_label' => $t('Digital Bookplate'),
+    'name' => $t('Bookplate'),
+    'description' => $t('A Bookplate Page'),
+    'title_label' => $t('Bookplate Title'),
     'base' => 'node_content',
     'custom' => TRUE,
+    'published' => TRUE,
+    'promote' => FALSE,
     );
 
-  // Set remaning definitions with defaults.
+  // Set remaining definitions with defaults.
   $node_type = node_type_set_defaults($content_type);
 
   // Save the content type.
   node_type_save($node_type);
 
-  // Add a field for the body.
-  node_add_body_field($node_type, $t('Description'));
-
+//Store variable for bookplate type
+function _bookplate_type_choices() {  
+  $bookplatetypes = array(
+    0 => t('In Honor Of'),
+    1 => t('In Memory Of'),
+    2 => t('Collection'),
+    3 => t('Trust'),
+    4 => t('Gift'), 
+  );
+  return $bookplatetypes;
+}
 // Create fields.
 $fields = array();
-
-  $fields['bookplate_title'] = array(
-    'field_name' => 'bookplate_title',
-    'type' => 'text',
+  $fields['bookplate_type'] = array(
+    'field_name' => 'bookplate_type',
+    'type' => 'list_integer',
+    'cardinality' => '1',
     'settings' => array(
-      'max_length' => 100,
-      ),
-    );
+      'options' => '_bookplate_type_choices',
+        ), 
+      );
 
   $fields['bookplate_full_name'] = array(
     'field_name' => 'bookplate_full_name',
@@ -64,9 +74,9 @@ $fields = array();
 
    $fields['bookplate_tribute'] = array(
     'field_name' => 'bookplate_tribute',
-    'type' => 'text',
+    'type' => 'text_long',
     'settings' => array(
-      'max_length' => 400,
+      'rows' => 5,
       ),
     );
 
@@ -78,6 +88,16 @@ $fields = array();
       ),
     );
 
+   $fields['bookplate_image'] = array(
+    'field_name' => 'bookplate_image',
+    'type' => 'file',
+    'title' => 'Choose a file',
+    'size' => 22,
+    'settings' => array(
+      'uri_scheme' => variable_get('file_default_scheme', 'public'),
+      ),
+    );
+
    foreach ($fields as $field) {
       field_create_field($field);
    }
@@ -85,23 +105,18 @@ $fields = array();
    // Create Field instances.
    $instances = array();
 
-   $instances['bookplate_title'] = array(
-     'field_name' => 'bookplate_title',
-     'label' => $t('Bookplate Title'),
-     'description' => $t('Serves as wording for the $z in the 856 URL and also as the honoree in staff mode.  It should match the name given on the book plate itself.'),
-     'widget' => array(
-       'type' => 'text_textfield',
-      ),
-     'required' => TRUE,
-     'settings' => array(
-       'text_processing' => 0,
-      ),
-     'display' => array(
+    $instances['bookplate_type'] = array(
+      'field_name' => 'bookplate_type',
+      'label' => $t('Select the bookplate type'),
+      'description' => $t('Corresponds to the fund code type.'),
+      'widget' => array(
+        'type' => 'options_buttons'),
+      'display' => array(
         'default' => array(
           'label' => 'inline',
+          ),
         ),
-      ),
-     );
+      );
 
     $instances['bookplate_full_name'] = array(
      'field_name' => 'bookplate_full_name',
@@ -144,11 +159,11 @@ $fields = array();
      'label' => $t('Tribute to honoree'),
      'description' => $t('Display of tribute to honoree.'),
      'widget' => array(
-       'type' => 'text_textfield',
+       'type' => 'text_textarea',
       ),
      'required' => FALSE,
      'settings' => array(
-       'text_processing' => 0,
+       'text_processing' => 1,
       ),
      'display' => array(
         'default' => array(
@@ -159,8 +174,8 @@ $fields = array();
 
     $instances['bookplate_reference_url'] = array(
      'field_name' => 'bookplate_reference_url',
-     'label' => $t('For more information about this donation'),
-     'description' => $t('Link to more information about the honoree.'),
+     'label' => $t('View More Items Purchased with this Fund'),
+     'description' => $t('View More Items Purchased with this Fund.'),
      'widget' => array(
        'type' => 'text_textfield',
       ),
@@ -174,6 +189,38 @@ $fields = array();
         ),
       ),
      );
+
+     $instances['bookplate_image'] = array(
+     'field_name' => 'bookplate_image',
+     'label' => $t('Bookplate Image File'),
+     'description' => $t('Bookplate image.'),
+     'widget' => array(
+       'type' => 'image',
+      ),
+     'required' => FALSE,
+     'settings' => array(
+       'upload_validators' => array(
+        'file_validate_extensions' => array('gif png jpg jpeg')),
+       'alt_field' => 0,
+       'title_field' => 0,
+       'default_value' => variable_get('default_image', ''),
+      ),
+     'display' => array(
+        'default' => array(
+          'label' => 'inline',
+        ),
+      ),
+     );
+
+      //Make the uploaded file permanent.
+      // Load the file via file.fid.
+      //$file = file_load($form_state['values']['my_file_field']);
+      // Change status to permanent.
+      //$file->status = FILE_STATUS_PERMANENT;
+      // Save.
+      //file_save($file);
+      // Record that the module (in this example, user module) is using the file.
+      //file_usage_add($file, 'user', 'user', $account->uid); 
 
     foreach ($instances as $instance) {
       $instance['entity_type'] = 'node';
@@ -220,9 +267,100 @@ $fields = array();
 
   //Delete the content type.
   node_type_delete('bookplate');
-
   drupal_set_message($t('Bookplate content type removed.'));
 
   // Clean up deleted fields.
   field_purge_batch(1000);
  }
+
+ /**
+  *  Implements hook_feeds_importer_default()
+  */
+
+ function bookplates_feeds_importer_default() {
+  $export = array ();
+
+  $feeds_importer = new stdClass();
+  $feeds_importer->disabled = FALSE;
+  $feeds_importer->api_version = 1;
+  $feeds_importer->id = 'new_to_the_library';
+  $feeds_importer->config = array(
+    'name' => 'New to the Library',
+    'description' => 'Material that has been recently added to the Library',
+    'fetcher' => array(
+      'plugin_key' => 'FeedsFileFetcher',
+      'config' => array(
+        'allowed_extensions' => 'txt csv tsv xml opml',
+        'direct' => FALSE,
+        'directory' => 'public://feeds',
+        'allowed_schemes' => array(
+          0 => 'public',
+        ),
+      ),
+    ),
+    'parser' => array(
+      'plugin_key' => 'FeedsCSVParser',
+      'config' => array(
+        'delimiter' => ',',
+        'no_headers' => 0,
+      ),
+    ),
+    'processor' => array(
+      'plugin_key' => 'FeedsNodeProcessor',
+      'config' => array(
+        'expire' => '-1',
+        'author' => '1',
+        'authorize' => 1,
+        'mappings' => array(
+          0 => array(
+            'source' => 'title',
+            'target' => 'title',
+            'unique' => FALSE,
+          ),
+          1 => array(
+            'source' => 'author',
+            'target' => 'title',
+            'unique' => FALSE,
+          ),
+          2 => array(
+            'source' => 'call_number',
+            'target' => 'field_feed_item_description',
+            'unique' => FALSE,
+          ),
+        ),
+        'update_existing' => '0',
+        'input_format' => 'plain_text',
+        'skip_hash_check' => 0,
+        'bundle' => 'feed_item',
+      ),
+    ),
+    'content_type' => 'feed_item',
+    'update' => 0,
+    'import_period' => '-1',
+    'expire_period' => 3600,
+    'import_on_create' => 1,
+    'process_in_background' => 0,
+  );
+
+
+$export['new_to_the_library'] = $feeds_importer;
+return $export;
+
+ }
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function bookplates_ctools_plugin_api($module = '', $api = '') {
+  if ($module == 'feeds' && $api == 'feeds_importer_default') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Create Block to Show Newly Added Titles by Bookplate
+ */
+
+/**
+ * Create View to Browse Bookplates
+ */
