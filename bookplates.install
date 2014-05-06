@@ -54,11 +54,18 @@ $fields = array();
 
    $fields['bookplate_type'] = array(
     'field_name' => 'bookplate_type',
-    'type' => 'list_integer',
+    'type' => 'list_text',
     'cardinality' => '1',
-    'settings' => array(
-      'options' => bookplate_type_choices(),
-        ),
+    'options' => array(
+       0 => t('In Honor Of'),
+       1 => t('In Memory Of'),
+       2 => t('Collection'),
+       3 => t('Trust'),
+       4 => t('Gift'),
+      ), 
+    //'settings' => array(
+      //'options' => bookplate_type_choices(),
+        //),
       );
 
   $fields['bookplate_full_name'] = array(
