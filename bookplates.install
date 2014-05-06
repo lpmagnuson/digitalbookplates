@@ -14,6 +14,7 @@ function bookplates_install() {
 	variable_set('bookplate_library_name', $t('Library'));
 	variable_set('bookplate_library_catalog_link', $t('http://'));
 
+  
 	drupal_set_message($t('Bookplates variables created'));
 
   //  Content type definition.
@@ -24,8 +25,9 @@ function bookplates_install() {
     'title_label' => $t('Bookplate Title'),
     'base' => 'node_content',
     'custom' => TRUE,
-    'published' => TRUE,
-    'promote' => FALSE,
+    'status' => 1,
+    'promote' => 0,
+    'comment' => 0,
     );
 
   // Set remaining definitions with defaults.
@@ -35,7 +37,7 @@ function bookplates_install() {
   node_type_save($node_type);
 
 //Store variable for bookplate type
-function _bookplate_type_choices() {  
+function bookplate_type_choices() {  
   $bookplatetypes = array(
     0 => t('In Honor Of'),
     1 => t('In Memory Of'),
@@ -45,15 +47,18 @@ function _bookplate_type_choices() {
   );
   return $bookplatetypes;
 }
+
 // Create fields.
 $fields = array();
-  $fields['bookplate_type'] = array(
+
+
+   $fields['bookplate_type'] = array(
     'field_name' => 'bookplate_type',
     'type' => 'list_integer',
     'cardinality' => '1',
     'settings' => array(
-      'options' => '_bookplate_type_choices',
-        ), 
+      'options' => bookplate_type_choices(),
+        ),
       );
 
   $fields['bookplate_full_name'] = array(
@@ -95,6 +100,8 @@ $fields = array();
     'size' => 22,
     'settings' => array(
       'uri_scheme' => variable_get('file_default_scheme', 'public'),
+      'upload_validators' => array(
+      'file_validate_extensions' => array('gif png jpg jpeg')),
       ),
     );
 
@@ -105,7 +112,7 @@ $fields = array();
    // Create Field instances.
    $instances = array();
 
-    $instances['bookplate_type'] = array(
+     $instances['bookplate_type'] = array(
       'field_name' => 'bookplate_type',
       'label' => $t('Select the bookplate type'),
       'description' => $t('Corresponds to the fund code type.'),
@@ -199,8 +206,6 @@ $fields = array();
       ),
      'required' => FALSE,
      'settings' => array(
-       'upload_validators' => array(
-        'file_validate_extensions' => array('gif png jpg jpeg')),
        'alt_field' => 0,
        'title_field' => 0,
        'default_value' => variable_get('default_image', ''),
