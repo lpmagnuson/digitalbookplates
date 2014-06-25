@@ -13,8 +13,8 @@ function bookplates_install() {
 
 	variable_set('bookplate_library_name', $t('Library'));
 	variable_set('bookplate_library_catalog_link', $t('http://'));
-
-  
+  variable_set('comment_bookplate', '1');
+  variable_set('node_submitted_bookplate', 0);
 	drupal_set_message($t('Bookplates variables created'));
 
   //  Content type definition.
@@ -36,8 +36,12 @@ function bookplates_install() {
   // Save the content type.
   node_type_save($node_type);
 
+
+// Create fields.
+$fields = array();
+
 //Store variable for bookplate type
-function bookplate_type_choices() {  
+ 
   $bookplatetypes = array(
     0 => t('In Honor Of'),
     1 => t('In Memory Of'),
@@ -45,28 +49,12 @@ function bookplate_type_choices() {
     3 => t('Trust'),
     4 => t('Gift'), 
   );
-  return $bookplatetypes;
-}
-
-// Create fields.
-$fields = array();
-
-
+   
    $fields['bookplate_type'] = array(
     'field_name' => 'bookplate_type',
-    'type' => 'list_text',
-    'cardinality' => '1',
-    'options' => array(
-       0 => t('In Honor Of'),
-       1 => t('In Memory Of'),
-       2 => t('Collection'),
-       3 => t('Trust'),
-       4 => t('Gift'),
-      ), 
-    //'settings' => array(
-      //'options' => bookplate_type_choices(),
-        //),
-      );
+    'type' => 'radios',
+    'options' => $bookplatetypes,
+    );
 
   $fields['bookplate_full_name'] = array(
     'field_name' => 'bookplate_full_name',
@@ -79,6 +67,7 @@ $fields = array();
    $fields['bookplate_short_name'] = array(
     'field_name' => 'bookplate_short_name',
     'type' => 'text',
+    'format' =>'hidden',
     'settings' => array(
       'max_length' => 24,
       ),
@@ -102,7 +91,7 @@ $fields = array();
 
    $fields['bookplate_image'] = array(
     'field_name' => 'bookplate_image',
-    'type' => 'file',
+    'type' => 'image',
     'title' => 'Choose a file',
     'size' => 22,
     'settings' => array(
@@ -219,7 +208,7 @@ $fields = array();
       ),
      'display' => array(
         'default' => array(
-          'label' => 'inline',
+          'label' => 'hidden',
         ),
       ),
      );
@@ -287,7 +276,7 @@ $fields = array();
 
  /**
   *  Implements hook_feeds_importer_default()
-  */
+  
 
  function bookplates_feeds_importer_default() {
   $export = array ();
@@ -359,7 +348,7 @@ $export['new_to_the_library'] = $feeds_importer;
 return $export;
 
  }
-
+ */
 /**
  * Implements hook_ctools_plugin_api().
  */
