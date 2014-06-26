@@ -1,1 +1,1 @@
-A drupal module under development that will enable creating and storing digital bookplates with feeds from local ILS systems.
+A drupal module under development that will enable creating and storing digital bookplates with feeds from local ILS systems.  Under development.

@@ -13,8 +13,8 @@ function bookplates_install() {
 
 	variable_set('bookplate_library_name', $t('Library'));
 	variable_set('bookplate_library_catalog_link', $t('http://'));
-  variable_set('comment_bookplate', '1');
-  variable_set('node_submitted_bookplate', 0);
+    variable_set('comment_bookplate', '1');
+    variable_set('node_submitted_bookplate', 0);
 	drupal_set_message($t('Bookplates variables created'));
 
   //  Content type definition.
@@ -39,22 +39,32 @@ function bookplates_install() {
 
 // Create fields.
 $fields = array();
-
-//Store variable for bookplate type
- 
-  $bookplatetypes = array(
-    0 => t('In Honor Of'),
-    1 => t('In Memory Of'),
-    2 => t('Collection'),
-    3 => t('Trust'),
-    4 => t('Gift'), 
-  );
    
-   $fields['bookplate_type'] = array(
-    'field_name' => 'bookplate_type',
-    'type' => 'radios',
-    'options' => $bookplatetypes,
+  $fields['bookplate_image'] = array(
+    'field_name' => 'bookplate_image',
+    'type' => 'image',
+    'title' => 'Choose a file',
+    'size' => 22,
+    'settings' => array(
+      'uri_scheme' => variable_get('file_default_scheme', 'public'),
+      'upload_validators' => array(
+      'file_validate_extensions' => array('gif png jpg jpeg')),
+      ),
     );
+
+
+  $fields['bookplate_type'] = array(
+        'field_name' => 'bookplate_type',
+        'type' => 'list_integer',
+        'cardinality' => '1',
+        'foreign keys' => array(),
+        'indexes' => array(
+          'value' => array(
+            0 =>'value',
+            ),
+          ),
+        'module' => 'list',
+        );
 
   $fields['bookplate_full_name'] = array(
     'field_name' => 'bookplate_full_name',
@@ -83,21 +93,9 @@ $fields = array();
 
    $fields['bookplate_reference_url'] = array(
     'field_name' => 'bookplate_reference_url',
-    'type' => 'text',
+    'type' => 'link_field',
     'settings' => array(
       'max_length' => 100,
-      ),
-    );
-
-   $fields['bookplate_image'] = array(
-    'field_name' => 'bookplate_image',
-    'type' => 'image',
-    'title' => 'Choose a file',
-    'size' => 22,
-    'settings' => array(
-      'uri_scheme' => variable_get('file_default_scheme', 'public'),
-      'upload_validators' => array(
-      'file_validate_extensions' => array('gif png jpg jpeg')),
       ),
     );
 
@@ -108,16 +106,57 @@ $fields = array();
    // Create Field instances.
    $instances = array();
 
+    $instances['bookplate_image'] = array(
+     'field_name' => 'bookplate_image',
+     'label' => $t('Bookplate Image File'),
+     'description' => $t('Bookplate image.'),
+     'widget' => array(
+       'type' => 'image',
+      ),
+     'required' => FALSE,
+     'settings' => array(
+       'alt_field' => 0,
+       'title_field' => 0,
+       'default_value' => variable_get('default_image', ''),
+      ),
+     'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+        ),
+      ),
+     );
+
      $instances['bookplate_type'] = array(
       'field_name' => 'bookplate_type',
       'label' => $t('Select the bookplate type'),
+      'type' => 'list_default',
       'description' => $t('Corresponds to the fund code type.'),
-      'widget' => array(
-        'type' => 'options_buttons'),
+      'default_value' => 0,
       'display' => array(
         'default' => array(
-          'label' => 'inline',
+          'label' => 'above',
+          'module' => 'list',
+          'settings' => array(),
+          'type' => 'list_default',
+          'weight' => -1,
           ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => -1,
+        ),
+      ),
+      'required' => 0,
+      'settings' => array(
+        'user_register_form' => FALSE,
+        ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'options',
+        'settings' => array(),
+        'type' => 'options_buttons',
+        'weight' => '-1',
         ),
       );
 
@@ -152,7 +191,8 @@ $fields = array();
       ),
      'display' => array(
         'default' => array(
-          'label' => 'inline',
+          'label' => 'hidden',
+          'format' => 'hidden',
         ),
       ),
      );
@@ -170,7 +210,7 @@ $fields = array();
       ),
      'display' => array(
         'default' => array(
-          'label' => 'inline',
+          'label' => 'hidden',
         ),
       ),
      );
@@ -180,7 +220,7 @@ $fields = array();
      'label' => $t('View More Items Purchased with this Fund'),
      'description' => $t('View More Items Purchased with this Fund.'),
      'widget' => array(
-       'type' => 'text_textfield',
+       'type' => 'link',
       ),
      'required' => TRUE,
      'settings' => array(
@@ -193,40 +233,11 @@ $fields = array();
       ),
      );
 
-     $instances['bookplate_image'] = array(
-     'field_name' => 'bookplate_image',
-     'label' => $t('Bookplate Image File'),
-     'description' => $t('Bookplate image.'),
-     'widget' => array(
-       'type' => 'image',
-      ),
-     'required' => FALSE,
-     'settings' => array(
-       'alt_field' => 0,
-       'title_field' => 0,
-       'default_value' => variable_get('default_image', ''),
-      ),
-     'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-        ),
-      ),
-     );
-
-      //Make the uploaded file permanent.
-      // Load the file via file.fid.
-      //$file = file_load($form_state['values']['my_file_field']);
-      // Change status to permanent.
-      //$file->status = FILE_STATUS_PERMANENT;
-      // Save.
-      //file_save($file);
-      // Record that the module (in this example, user module) is using the file.
-      //file_usage_add($file, 'user', 'user', $account->uid); 
-
     foreach ($instances as $instance) {
       $instance['entity_type'] = 'node';
       $instance['bundle'] = 'bookplate';
       field_create_instance($instance);
+
     }
 
 }
